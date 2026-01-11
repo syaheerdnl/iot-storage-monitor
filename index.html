@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Storage Monitor Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.2em;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .card-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+        
+        .card-unit {
+            font-size: 1.2em;
+            color: #999;
+        }
+        
+        .status-ok { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-critical { color: #ef4444; }
+        
+        .charts {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .chart-container {
+            margin-bottom: 20px;
+        }
+        
+        iframe {
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .last-update {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Smart Storage Monitor</h1>
+        
+        <div id="loading" class="loading">Loading data...</div>
+        
+        <div id="dashboard" class="dashboard" style="display: none;">
+            <div class="card">
+                <div class="card-title">📏 Distance</div>
+                <div class="card-value" id="distance">--</div>
+                <div class="card-unit">cm</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📦 Occupancy</div>
+                <div class="card-value" id="occupancy">--</div>
+                <div class="card-unit">%</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🌡️ Temperature</div>
+                <div class="card-value" id="temperature">--</div>
+                <div class="card-unit">°C</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💧 Humidity</div>
+                <div class="card-value" id="humidity">--</div>
+                <div class="card-unit">%</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">💡 Light</div>
+                <div class="card-value" id="light">--</div>
+                <div class="card-unit">lux</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📊 Status</div>
+                <div class="card-value" id="status">--</div>
+            </div>
+        </div>
+        
+        <div class="charts" id="charts" style="display: none;">
+            <h2 style="margin-bottom: 20px; color: #667eea;">📈 Historical Data</h2>
+            
+            <div class="chart-container">
+                <h3>Distance Over Time</h3>
+                <iframe width="100%" height="260" src="https://thingspeak.com/channels/YOUR_CHANNEL_ID/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&title=Distance&type=line"></iframe>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Temperature & Humidity</h3>
+                <iframe width="100%" height="260" src="https://thingspeak.com/channels/YOUR_CHANNEL_ID/charts/3?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&title=Temperature"></iframe>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Light Level</h3>
+                <iframe width="100%" height="260" src="https://thingspeak.com/channels/YOUR_CHANNEL_ID/charts/4?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&title=Light+Level"></iframe>
+            </div>
+        </div>
+        
+        <div class="last-update" id="lastUpdate"></div>
+    </div>
+
+    <script>
+        // REPLACE THESE WITH YOUR ACTUAL VALUES
+        const CHANNEL_ID = 'YOUR_CHANNEL_ID';  // Get from ThingSpeak
+        const READ_API_KEY = 'YOUR_READ_API_KEY';  // Get from ThingSpeak
+        
+        async function fetchData() {
+            try {
+                const response = await fetch(
+                    `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=1`
+                );
+                const data = await response.json();
+                
+                if (data.feeds && data.feeds.length > 0) {
+                    const latest = data.feeds[0];
+                    
+                    // Update values
+                    document.getElementById('distance').textContent = parseFloat(latest.field1).toFixed(1);
+                    document.getElementById('occupancy').textContent = parseFloat(latest.field2).toFixed(0);
+                    document.getElementById('temperature').textContent = parseFloat(latest.field3).toFixed(1);
+                    document.getElementById('light').textContent = parseFloat(latest.field4).toFixed(1);
+                    document.getElementById('humidity').textContent = parseFloat(latest.field6).toFixed(1);
+                    
+                    // Update status
+                    const statusCode = parseInt(latest.field5);
+                    const statusElement = document.getElementById('status');
+                    
+                    if (statusCode === 0) {
+                        statusElement.textContent = 'OK';
+                        statusElement.className = 'card-value status-ok';
+                    } else if (statusCode === 1) {
+                        statusElement.textContent = 'Warning';
+                        statusElement.className = 'card-value status-warning';
+                    } else {
+                        statusElement.textContent = 'Critical';
+                        statusElement.className = 'card-value status-critical';
+                    }
+                    
+                    // Update last update time
+                    const updateTime = new Date(latest.created_at).toLocaleString();
+                    document.getElementById('lastUpdate').textContent = `Last updated: ${updateTime}`;
+                    
+                    // Show dashboard
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'grid';
+                    document.getElementById('charts').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loading').textContent = 'Error loading data. Please check your API keys.';
+            }
+        }
+        
+        // Fetch data immediately
+        fetchData();
+        
+        // Refresh every 20 seconds
+        setInterval(fetchData, 20000);
+    </script>
+</body>
+</html>
