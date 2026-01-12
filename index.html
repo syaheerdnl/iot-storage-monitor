@@ -545,11 +545,9 @@
     </div>
 
     <script>
-        // Main sensor channel
+        // Configuration
         const CHANNEL_ID = '3153094';
         const READ_API_KEY = 'XBWJRYJG38A4S3TV';
-
-        // Configuration channel
         const CONFIG_CHANNEL_ID = '3225871';
         const CONFIG_WRITE_API_KEY = 'F94XWLZ2D6JX104K';
         const CONFIG_READ_API_KEY = 'WCNGZ19B6GMBYT0W';
@@ -559,33 +557,28 @@
         let findCooldownEnd = 0;
         let snoozeExpiryTime = 0;
 
-        // Update countdown timers every second
+        // Update countdown timers
         function updateTimers() {
             const now = Date.now();
             
-            // Snooze button timer
             const snoozeBtn = document.getElementById('snoozeButton');
             const snoozeTimer = document.getElementById('snoozeTimer');
             
             if (snoozeExpiryTime > now) {
-                // Snooze is active - show time remaining
                 const remaining = Math.ceil((snoozeExpiryTime - now) / 1000);
                 const mins = Math.floor(remaining / 60);
                 const secs = remaining % 60;
                 snoozeTimer.textContent = `Expires in ${mins}:${secs.toString().padStart(2, '0')}`;
                 snoozeBtn.disabled = false;
             } else if (snoozeCooldownEnd > now) {
-                // Cooldown active - can't click yet
                 const remaining = Math.ceil((snoozeCooldownEnd - now) / 1000);
                 snoozeTimer.textContent = `Ready in ${remaining}s`;
                 snoozeBtn.disabled = true;
             } else {
-                // Ready to use
                 snoozeTimer.textContent = '5 minutes';
                 snoozeBtn.disabled = false;
             }
             
-            // Find button timer
             const findBtn = document.getElementById('findButton');
             const findTimer = document.getElementById('findTimer');
             
@@ -599,27 +592,22 @@
             }
         }
 
-        // Start timer updates
         setInterval(updateTimers, 1000);
 
-        // Snooze Alarm Function with Timer
+        // Snooze alarm
         async function snoozeAlarm() {
-            console.log('Snooze button clicked');
             const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field2=1`;
             
             document.getElementById('controlStatus').textContent = '⏳ Snoozing alarm...';
             document.getElementById('controlStatus').style.color = 'white';
             
             try {
-                console.log('Sending request to:', url);
                 const response = await fetch(url);
                 const result = await response.text();
-                console.log('ThingSpeak response:', result);
                 
                 if (result !== '0') {
-                    // Success - set 5 minute expiry and 20 second cooldown
-                    snoozeExpiryTime = Date.now() + (5 * 60 * 1000); // 5 minutes
-                    snoozeCooldownEnd = Date.now() + 20000; // 20 second cooldown
+                    snoozeExpiryTime = Date.now() + (5 * 60 * 1000);
+                    snoozeCooldownEnd = Date.now() + 20000;
                     
                     document.getElementById('controlStatus').textContent = '✅ Alarm snoozed for 5 minutes!';
                     document.getElementById('controlStatus').style.color = 'white';
@@ -627,18 +615,14 @@
                         document.getElementById('controlStatus').textContent = '';
                     }, 3000);
                 } else {
-                    // Rate limit
-                    console.log('Rate limited, will retry in 20 seconds');
                     snoozeCooldownEnd = Date.now() + 20000;
-                    document.getElementById('controlStatus').textContent = '⏳ Rate limit - retrying in 20 sec...';
+                    document.getElementById('controlStatus').textContent = '⏳ Retrying in 20 seconds...';
                     document.getElementById('controlStatus').style.color = '#f59e0b';
                     
                     setTimeout(async () => {
-                        console.log('Retrying snooze...');
                         try {
                             const retryResponse = await fetch(url);
                             const retryResult = await retryResponse.text();
-                            console.log('Retry response:', retryResult);
                             
                             if (retryResult !== '0') {
                                 snoozeExpiryTime = Date.now() + (5 * 60 * 1000);
@@ -647,40 +631,31 @@
                                 setTimeout(() => {
                                     document.getElementById('controlStatus').textContent = '';
                                 }, 3000);
-                            } else {
-                                document.getElementById('controlStatus').textContent = '❌ Failed - Check API key';
-                                document.getElementById('controlStatus').style.color = '#ef4444';
                             }
                         } catch (error) {
-                            console.error('Retry error:', error);
                             document.getElementById('controlStatus').textContent = '❌ Retry failed';
                             document.getElementById('controlStatus').style.color = '#ef4444';
                         }
                     }, 20000);
                 }
             } catch (error) {
-                console.error('Snooze error:', error);
-                document.getElementById('controlStatus').textContent = '❌ Network error: ' + error.message;
+                document.getElementById('controlStatus').textContent = '❌ Network error';
                 document.getElementById('controlStatus').style.color = '#ef4444';
             }
         }
 
-        // Find Device Function with Timer
+        // Find device
         async function findDevice() {
-            console.log('Find device button clicked');
             const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field3=1`;
             
             document.getElementById('controlStatus').textContent = '⏳ Activating locator...';
             document.getElementById('controlStatus').style.color = 'white';
             
             try {
-                console.log('Sending request to:', url);
                 const response = await fetch(url);
                 const result = await response.text();
-                console.log('ThingSpeak response:', result);
                 
                 if (result !== '0') {
-                    // Success - set 20 second cooldown
                     findCooldownEnd = Date.now() + 20000;
                     
                     document.getElementById('controlStatus').textContent = '📍 Locator beeping! Listen for device...';
@@ -689,18 +664,14 @@
                         document.getElementById('controlStatus').textContent = '';
                     }, 10000);
                 } else {
-                    // Rate limit
-                    console.log('Rate limited, will retry in 20 seconds');
                     findCooldownEnd = Date.now() + 20000;
-                    document.getElementById('controlStatus').textContent = '⏳ Rate limit - retrying in 20 sec...';
+                    document.getElementById('controlStatus').textContent = '⏳ Retrying in 20 seconds...';
                     document.getElementById('controlStatus').style.color = '#f59e0b';
                     
                     setTimeout(async () => {
-                        console.log('Retrying find device...');
                         try {
                             const retryResponse = await fetch(url);
                             const retryResult = await retryResponse.text();
-                            console.log('Retry response:', retryResult);
                             
                             if (retryResult !== '0') {
                                 document.getElementById('controlStatus').textContent = '📍 Locator activated!';
@@ -708,20 +679,15 @@
                                 setTimeout(() => {
                                     document.getElementById('controlStatus').textContent = '';
                                 }, 10000);
-                            } else {
-                                document.getElementById('controlStatus').textContent = '❌ Failed - Check API key';
-                                document.getElementById('controlStatus').style.color = '#ef4444';
                             }
                         } catch (error) {
-                            console.error('Retry error:', error);
                             document.getElementById('controlStatus').textContent = '❌ Retry failed';
                             document.getElementById('controlStatus').style.color = '#ef4444';
                         }
                     }, 20000);
                 }
             } catch (error) {
-                console.error('Find device error:', error);
-                document.getElementById('controlStatus').textContent = '❌ Network error: ' + error.message;
+                document.getElementById('controlStatus').textContent = '❌ Network error';
                 document.getElementById('controlStatus').style.color = '#ef4444';
             }
         }
@@ -765,7 +731,7 @@
                     }, 500);
                 }
             } catch (error) {
-                console.error('Fetch error:', error);
+                console.error('Data fetch error');
             }
         }
 
@@ -844,73 +810,44 @@
         }
 
         // Initialize
-        console.log('=== Dashboard Initializing ===');
-        console.log('Config channel:', CONFIG_CHANNEL_ID);
-        console.log('Write API key:', CONFIG_WRITE_API_KEY ? 'Present' : 'MISSING!');
-        
         lucide.createIcons();
         fetchData();
         setInterval(fetchData, 20000);
         
-        // Wait for page to fully load before attaching button listeners
         window.addEventListener('load', () => {
-            console.log('=== Page Loaded, Setting Up Buttons ===');
-            
             setTimeout(loadCurrentConfig, 2000);
             
-            // Attach SNOOZE button
             const snoozeBtn = document.getElementById('snoozeButton');
             if (snoozeBtn) {
-                console.log('✅ Snooze button found');
                 snoozeBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (!snoozeBtn.disabled) {
-                        console.log('🔘 Snooze button clicked!');
-                        snoozeAlarm();
-                    }
+                    if (!snoozeBtn.disabled) snoozeAlarm();
                 });
-            } else {
-                console.error('❌ Snooze button NOT found!');
             }
             
-            // Attach FIND DEVICE button
             const findBtn = document.getElementById('findButton');
             if (findBtn) {
-                console.log('✅ Find button found');
                 findBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (!findBtn.disabled) {
-                        console.log('🔘 Find button clicked!');
-                        findDevice();
-                    }
+                    if (!findBtn.disabled) findDevice();
                 });
-            } else {
-                console.error('❌ Find button NOT found!');
             }
             
-            // Attach SAVE CONFIG button
             const saveBtn = document.getElementById('saveConfigButton');
             if (saveBtn) {
-                console.log('✅ Save config button found');
                 saveBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('🔘 Save config clicked!');
                     saveConfig();
                 });
             }
             
-            // Attach LOAD CONFIG button
             const loadBtn = document.getElementById('loadConfigButton');
             if (loadBtn) {
-                console.log('✅ Load config button found');
                 loadBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('🔘 Load config clicked!');
                     loadCurrentConfig();
                 });
             }
-            
-            console.log('=== Setup Complete ===');
         });
     </script>
 </body>
