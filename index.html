@@ -35,7 +35,6 @@
             margin: 0 auto;
         }
 
-        /* Header Section */
         header {
             display: flex;
             justify-content: space-between;
@@ -78,7 +77,6 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* Dashboard Grid */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -136,7 +134,6 @@
             margin-left: 4px;
         }
 
-        /* Occupancy Progress Bar */
         .progress-container {
             width: 100%;
             height: 6px;
@@ -152,7 +149,6 @@
             transition: width 1s ease-in-out;
         }
 
-        /* Status Colors */
         .status-badge {
             padding: 4px 12px;
             border-radius: 8px;
@@ -163,7 +159,6 @@
         .bg-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
         .bg-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
-        /* Charts Section */
         .charts-section {
             background: var(--glass);
             border: 1px solid var(--glass-border);
@@ -213,6 +208,46 @@
             align-items: center;
             z-index: 1000;
             transition: opacity 0.5s;
+        }
+
+        .emergency-card {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+        }
+
+        .emergency-card .card-header {
+            color: white;
+        }
+
+        .emergency-card .card-title {
+            color: white;
+        }
+
+        .emergency-card .icon-box {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .stop-button {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: #ef4444;
+            border: 2px solid white;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .stop-button:hover {
+            background: rgba(255,255,255,0.9);
+            transform: scale(1.02);
+        }
+
+        .stop-button:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
@@ -289,6 +324,18 @@
                     <span id="status" class="status-badge">Initializing...</span>
                 </div>
             </div>
+
+            <!-- NEW: Emergency Stop Button -->
+            <div class="card emergency-card">
+                <div class="card-header">
+                    <span class="card-title">🚨 Emergency Control</span>
+                    <div class="icon-box"><i data-lucide="bell-off"></i></div>
+                </div>
+                <button onclick="stopAlarm()" class="stop-button">
+                    🔇 STOP ALARM
+                </button>
+                <div id="alarmStatus" style="margin-top: 10px; text-align: center; font-size: 0.85rem; color: white;"></div>
+            </div>
         </div>
 
         <!-- Time-Based Alert Configuration -->
@@ -299,7 +346,6 @@
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
                 
-                <!-- Time Settings -->
                 <div class="card">
                     <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">⏰ After-Hours Period</h3>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -316,7 +362,6 @@
                     </div>
                 </div>
 
-                <!-- Threshold Settings -->
                 <div class="card">
                     <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🎯 Detection Thresholds</h3>
                     <div style="display: grid; gap: 8px;">
@@ -333,43 +378,40 @@
                     </div>
                 </div>
 
-<!-- Weekday Temperature Settings -->
-<div class="card">
-    <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🌡️ Weekday Temp Limits</h3>
-    <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-            <label style="font-size: 0.8rem; color: var(--text-muted);">High (°C)</label>
-            <input type="number" id="tempHighWeekday" value="30"
-                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
-        </div>
-        <div style="flex: 1;">
-            <label style="font-size: 0.8rem; color: var(--text-muted);">Low (°C)</label>
-            <input type="number" id="tempLowWeekday" value="18"
-                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
-        </div>
-    </div>
-    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Mon-Fri, 8 AM - 6 PM</p>
-</div>
+                <div class="card">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🌡️ Weekday Temp Limits</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">High (°C)</label>
+                            <input type="number" id="tempHighWeekday" value="30"
+                                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Low (°C)</label>
+                            <input type="number" id="tempLowWeekday" value="18"
+                                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                        </div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Mon-Fri, 8 AM - 6 PM</p>
+                </div>
 
-<!-- Weekend Temperature Settings -->
-<div class="card">
-    <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🌴 Weekend Temp Limits</h3>
-    <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-            <label style="font-size: 0.8rem; color: var(--text-muted);">High (°C)</label>
-            <input type="number" id="tempHighWeekend" value="35"
-                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
-        </div>
-        <div style="flex: 1;">
-            <label style="font-size: 0.8rem; color: var(--text-muted);">Low (°C)</label>
-            <input type="number" id="tempLowWeekend" value="15"
-                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
-        </div>
-    </div>
-    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Sat-Sun, All day</p>
-</div>
+                <div class="card">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🌴 Weekend Temp Limits</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">High (°C)</label>
+                            <input type="number" id="tempHighWeekend" value="35"
+                                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8rem; color: var(--text-muted);">Low (°C)</label>
+                            <input type="number" id="tempLowWeekend" value="15"
+                                   style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                        </div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Sat-Sun, All day</p>
+                </div>
 
-                <!-- Humidity Settings -->
                 <div class="card">
                     <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">💧 Humidity Limits</h3>
                     <div style="display: flex; gap: 10px;">
@@ -386,7 +428,6 @@
                     </div>
                 </div>
 
-                <!-- Enable/Disable + Save Button -->
                 <div class="card">
                     <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">⚙️ Controls</h3>
                     <div style="margin-bottom: 15px;">
@@ -410,7 +451,6 @@
                     <div id="saveStatus" style="margin-top: 10px; text-align: center; font-size: 0.85rem;"></div>
                 </div>
 
-                <!-- Load Current Config -->
                 <div class="card">
                     <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">📥 Current Config</h3>
                     <button onclick="loadCurrentConfig()" style="
@@ -466,14 +506,37 @@
     </div>
 
     <script>
-        // Main sensor data channel
+        // Main sensor channel
         const CHANNEL_ID = '3153094';
         const READ_API_KEY = 'XBWJRYJG38A4S3TV';
 
-        // Configuration channel (SEPARATE - NO RATE LIMIT CONFLICTS!)
-        const CONFIG_CHANNEL_ID = '3225871'; 
+        // Configuration channel
+        const CONFIG_CHANNEL_ID = '3225871';
         const CONFIG_WRITE_API_KEY = 'F94XWLZ2D6JX104K';  
-        const CONFIG_READ_API_KEY = 'WCNGZ19B6GMBYT0W';  
+        const CONFIG_READ_API_KEY = 'WCNGZ19B6GMBYT0W';
+
+        // NEW: Stop Alarm Function
+        async function stopAlarm() {
+            const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field2=1`;
+            
+            document.getElementById('alarmStatus').textContent = '⏳ Stopping alarm...';
+            
+            try {
+                const response = await fetch(url);
+                const result = await response.text();
+                
+                if (result !== '0') {
+                    document.getElementById('alarmStatus').textContent = '✅ Alarm stopped!';
+                    setTimeout(() => {
+                        document.getElementById('alarmStatus').textContent = '';
+                    }, 3000);
+                } else {
+                    document.getElementById('alarmStatus').textContent = '❌ Failed (try again)';
+                }
+            } catch (error) {
+                document.getElementById('alarmStatus').textContent = '❌ Network error';
+            }
+        }
 
         // Fetch sensor data
         async function fetchData() {
@@ -518,96 +581,92 @@
             }
         }
 
-        // Save configuration to SEPARATE config channel
-       async function saveConfig() {
-    const afterStart = document.getElementById('afterHoursStart').value;
-    const afterEnd = document.getElementById('afterHoursEnd').value;
-    const moveThresh = document.getElementById('movementThreshold').value;
-    const lightThresh = document.getElementById('lightThreshold').value;
-    const tempHighWD = document.getElementById('tempHighWeekday').value;
-    const tempLowWD = document.getElementById('tempLowWeekday').value;
-    const tempHighWE = document.getElementById('tempHighWeekend').value;
-    const tempLowWE = document.getElementById('tempLowWeekend').value;
-    const humH = document.getElementById('humidityHigh').value;
-    const humL = document.getElementById('humidityLow').value;
-    const enabled = document.getElementById('monitoringEnabled').checked ? 1 : 0;
-    
-    // NEW Format: "START,END,MOVE,LIGHT,WD_THIGH,WD_TLOW,WE_THIGH,WE_TLOW,HHIGH,HLOW,ENABLED"
-    const configString = `${afterStart},${afterEnd},${moveThresh},${lightThresh},${tempHighWD},${tempLowWD},${tempHighWE},${tempLowWE},${humH},${humL},${enabled}`;
-    
-    const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field1=${encodeURIComponent(configString)}`;
-    
-    document.getElementById('saveStatus').textContent = '⏳ Saving...';
-    document.getElementById('saveStatus').style.color = '#f59e0b';
-    
-    try {
-        const response = await fetch(url);
-        const result = await response.text();
-        
-        if (result !== '0') {
-            document.getElementById('saveStatus').textContent = '✅ Saved! Device will update in ~3 min';
-            document.getElementById('saveStatus').style.color = '#10b981';
-        } else {
-            document.getElementById('saveStatus').textContent = '❌ Save failed';
-            document.getElementById('saveStatus').style.color = '#ef4444';
-        }
-    } catch (error) {
-        document.getElementById('saveStatus').textContent = '❌ Network error';
-        document.getElementById('saveStatus').style.color = '#ef4444';
-    }
-}
-        // Load configuration from SEPARATE config channel
-      async function loadCurrentConfig() {
-    const url = `https://api.thingspeak.com/channels/${CONFIG_CHANNEL_ID}/fields/1/last.json?api_key=${CONFIG_READ_API_KEY}`;
-    
-    document.getElementById('currentConfig').textContent = '⏳ Loading...';
-    
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data && data.field1) {
-            const values = data.field1.split(',');
+        // Save configuration
+        async function saveConfig() {
+            const afterStart = document.getElementById('afterHoursStart').value;
+            const afterEnd = document.getElementById('afterHoursEnd').value;
+            const moveThresh = document.getElementById('movementThreshold').value;
+            const lightThresh = document.getElementById('lightThreshold').value;
+            const tempHighWD = document.getElementById('tempHighWeekday').value;
+            const tempLowWD = document.getElementById('tempLowWeekday').value;
+            const tempHighWE = document.getElementById('tempHighWeekend').value;
+            const tempLowWE = document.getElementById('tempLowWeekend').value;
+            const humH = document.getElementById('humidityHigh').value;
+            const humL = document.getElementById('humidityLow').value;
+            const enabled = document.getElementById('monitoringEnabled').checked ? 1 : 0;
             
-            document.getElementById('afterHoursStart').value = values[0];
-            document.getElementById('afterHoursEnd').value = values[1];
-            document.getElementById('movementThreshold').value = values[2];
-            document.getElementById('lightThreshold').value = values[3];
-            document.getElementById('tempHighWeekday').value = values[4];
-            document.getElementById('tempLowWeekday').value = values[5];
-            document.getElementById('tempHighWeekend').value = values[6];
-            document.getElementById('tempLowWeekend').value = values[7];
-            document.getElementById('humidityHigh').value = values[8];
-            document.getElementById('humidityLow').value = values[9];
-            document.getElementById('monitoringEnabled').checked = values[10] === '1';
+            const configString = `${afterStart},${afterEnd},${moveThresh},${lightThresh},${tempHighWD},${tempLowWD},${tempHighWE},${tempLowWE},${humH},${humL},${enabled}`;
+            const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field1=${encodeURIComponent(configString)}`;
             
-            document.getElementById('currentConfig').textContent = '✅ Loaded from device!';
-            document.getElementById('currentConfig').style.color = '#10b981';
-        } else {
-            document.getElementById('currentConfig').textContent = '⚠️ No config found';
-            document.getElementById('currentConfig').style.color = '#f59e0b';
+            document.getElementById('saveStatus').textContent = '⏳ Saving...';
+            document.getElementById('saveStatus').style.color = '#f59e0b';
+            
+            try {
+                const response = await fetch(url);
+                const result = await response.text();
+                
+                if (result !== '0') {
+                    document.getElementById('saveStatus').textContent = '✅ Saved! Device will update in ~1 min';
+                    document.getElementById('saveStatus').style.color = '#10b981';
+                } else {
+                    document.getElementById('saveStatus').textContent = '❌ Save failed';
+                    document.getElementById('saveStatus').style.color = '#ef4444';
+                }
+            } catch (error) {
+                document.getElementById('saveStatus').textContent = '❌ Network error';
+                document.getElementById('saveStatus').style.color = '#ef4444';
+            }
         }
-    } catch (error) {
-        document.getElementById('currentConfig').textContent = '❌ Load failed';
-        document.getElementById('currentConfig').style.color = '#ef4444';
-    }
-}
+
+        // Load configuration
+        async function loadCurrentConfig() {
+            const url = `https://api.thingspeak.com/channels/${CONFIG_CHANNEL_ID}/fields/1/last.json?api_key=${CONFIG_READ_API_KEY}`;
+            
+            document.getElementById('currentConfig').textContent = '⏳ Loading...';
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data && data.field1) {
+                    const values = data.field1.split(',');
+                    
+                    document.getElementById('afterHoursStart').value = values[0];
+                    document.getElementById('afterHoursEnd').value = values[1];
+                    document.getElementById('movementThreshold').value = values[2];
+                    document.getElementById('lightThreshold').value = values[3];
+                    document.getElementById('tempHighWeekday').value = values[4];
+                    document.getElementById('tempLowWeekday').value = values[5];
+                    document.getElementById('tempHighWeekend').value = values[6];
+                    document.getElementById('tempLowWeekend').value = values[7];
+                    document.getElementById('humidityHigh').value = values[8];
+                    document.getElementById('humidityLow').value = values[9];
+                    document.getElementById('monitoringEnabled').checked = values[10] === '1';
+                    
+                    document.getElementById('currentConfig').textContent = '✅ Loaded from device!';
+                    document.getElementById('currentConfig').style.color = '#10b981';
+                } else {
+                    document.getElementById('currentConfig').textContent = '⚠️ No config found';
+                    document.getElementById('currentConfig').style.color = '#f59e0b';
+                }
+            } catch (error) {
+                document.getElementById('currentConfig').textContent = '❌ Load failed';
+                document.getElementById('currentConfig').style.color = '#ef4444';
+            }
+        }
 
         // Initialize
         lucide.createIcons();
         fetchData();
         setInterval(fetchData, 20000);
         
-        // Auto-load config
         window.addEventListener('load', () => {
             setTimeout(loadCurrentConfig, 2000);
         });
 
-        // Animation styles
         const style = document.createElement('style');
         style.textContent = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`;
         document.head.append(style);
     </script>
 </body>
-
 </html>
