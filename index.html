@@ -238,14 +238,20 @@
             font-size: 1.1rem;
             transition: all 0.3s;
             margin-bottom: 12px;
+            position: relative;
         }
 
-        .control-button:hover {
+        .control-button:hover:not(:disabled) {
             transform: scale(1.02);
         }
 
-        .control-button:active {
+        .control-button:active:not(:disabled) {
             transform: scale(0.98);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .snooze-button {
@@ -259,8 +265,15 @@
             border: 2px solid white;
         }
 
-        .find-button:hover {
+        .find-button:hover:not(:disabled) {
             background: rgba(255,255,255,0.9);
+        }
+
+        .button-timer {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 4px;
+            opacity: 0.9;
         }
 
         @keyframes spin {
@@ -351,11 +364,13 @@
                 </div>
                 
                 <button id="snoozeButton" class="control-button snooze-button">
-                    ⏰ SNOOZE ALARM (5 min)
+                    <div>⏰ SNOOZE ALARM</div>
+                    <div class="button-timer" id="snoozeTimer"></div>
                 </button>
                 
                 <button id="findButton" class="control-button find-button">
-                    📍 FIND DEVICE
+                    <div>📍 FIND DEVICE</div>
+                    <div class="button-timer" id="findTimer"></div>
                 </button>
                 
                 <div id="controlStatus" style="margin-top: 10px; text-align: center; font-size: 0.85rem; color: white;"></div>
@@ -536,10 +551,58 @@
 
         // Configuration channel
         const CONFIG_CHANNEL_ID = '3225871';
-        const CONFIG_WRITE_API_KEY = 'F94XWLZ2D6JX104K';  // REPLACE WITH YOUR ACTUAL WRITE KEY
+        const CONFIG_WRITE_API_KEY = 'F94XWLZ2D6JX104K';
         const CONFIG_READ_API_KEY = 'WCNGZ19B6GMBYT0W';
 
-        // Snooze Alarm Function with Retry
+        // Timer variables
+        let snoozeCooldownEnd = 0;
+        let findCooldownEnd = 0;
+        let snoozeExpiryTime = 0;
+
+        // Update countdown timers every second
+        function updateTimers() {
+            const now = Date.now();
+            
+            // Snooze button timer
+            const snoozeBtn = document.getElementById('snoozeButton');
+            const snoozeTimer = document.getElementById('snoozeTimer');
+            
+            if (snoozeExpiryTime > now) {
+                // Snooze is active - show time remaining
+                const remaining = Math.ceil((snoozeExpiryTime - now) / 1000);
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                snoozeTimer.textContent = `Expires in ${mins}:${secs.toString().padStart(2, '0')}`;
+                snoozeBtn.disabled = false;
+            } else if (snoozeCooldownEnd > now) {
+                // Cooldown active - can't click yet
+                const remaining = Math.ceil((snoozeCooldownEnd - now) / 1000);
+                snoozeTimer.textContent = `Ready in ${remaining}s`;
+                snoozeBtn.disabled = true;
+            } else {
+                // Ready to use
+                snoozeTimer.textContent = '5 minutes';
+                snoozeBtn.disabled = false;
+            }
+            
+            // Find button timer
+            const findBtn = document.getElementById('findButton');
+            const findTimer = document.getElementById('findTimer');
+            
+            if (findCooldownEnd > now) {
+                const remaining = Math.ceil((findCooldownEnd - now) / 1000);
+                findTimer.textContent = `Ready in ${remaining}s`;
+                findBtn.disabled = true;
+            } else {
+                findTimer.textContent = 'Ready';
+                findBtn.disabled = false;
+            }
+        }
+
+        // Start timer updates
+        setInterval(updateTimers, 1000);
+
+        // Snooze Alarm Function with Timer
         async function snoozeAlarm() {
             console.log('Snooze button clicked');
             const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field2=1`;
@@ -554,14 +617,19 @@
                 console.log('ThingSpeak response:', result);
                 
                 if (result !== '0') {
+                    // Success - set 5 minute expiry and 20 second cooldown
+                    snoozeExpiryTime = Date.now() + (5 * 60 * 1000); // 5 minutes
+                    snoozeCooldownEnd = Date.now() + 20000; // 20 second cooldown
+                    
                     document.getElementById('controlStatus').textContent = '✅ Alarm snoozed for 5 minutes!';
                     document.getElementById('controlStatus').style.color = 'white';
                     setTimeout(() => {
                         document.getElementById('controlStatus').textContent = '';
                     }, 3000);
                 } else {
-                    // Rate limit - retry after 20 seconds
+                    // Rate limit
                     console.log('Rate limited, will retry in 20 seconds');
+                    snoozeCooldownEnd = Date.now() + 20000;
                     document.getElementById('controlStatus').textContent = '⏳ Rate limit - retrying in 20 sec...';
                     document.getElementById('controlStatus').style.color = '#f59e0b';
                     
@@ -573,6 +641,7 @@
                             console.log('Retry response:', retryResult);
                             
                             if (retryResult !== '0') {
+                                snoozeExpiryTime = Date.now() + (5 * 60 * 1000);
                                 document.getElementById('controlStatus').textContent = '✅ Alarm snoozed!';
                                 document.getElementById('controlStatus').style.color = 'white';
                                 setTimeout(() => {
@@ -596,7 +665,7 @@
             }
         }
 
-        // Find Device Function with Retry
+        // Find Device Function with Timer
         async function findDevice() {
             console.log('Find device button clicked');
             const url = `https://api.thingspeak.com/update?api_key=${CONFIG_WRITE_API_KEY}&field3=1`;
@@ -611,14 +680,18 @@
                 console.log('ThingSpeak response:', result);
                 
                 if (result !== '0') {
+                    // Success - set 20 second cooldown
+                    findCooldownEnd = Date.now() + 20000;
+                    
                     document.getElementById('controlStatus').textContent = '📍 Locator beeping! Listen for device...';
                     document.getElementById('controlStatus').style.color = 'white';
                     setTimeout(() => {
                         document.getElementById('controlStatus').textContent = '';
                     }, 10000);
                 } else {
-                    // Rate limit - retry after 20 seconds
+                    // Rate limit
                     console.log('Rate limited, will retry in 20 seconds');
+                    findCooldownEnd = Date.now() + 20000;
                     document.getElementById('controlStatus').textContent = '⏳ Rate limit - retrying in 20 sec...';
                     document.getElementById('controlStatus').style.color = '#f59e0b';
                     
@@ -791,8 +864,10 @@
                 console.log('✅ Snooze button found');
                 snoozeBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('🔘 Snooze button clicked!');
-                    snoozeAlarm();
+                    if (!snoozeBtn.disabled) {
+                        console.log('🔘 Snooze button clicked!');
+                        snoozeAlarm();
+                    }
                 });
             } else {
                 console.error('❌ Snooze button NOT found!');
@@ -804,8 +879,10 @@
                 console.log('✅ Find button found');
                 findBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('🔘 Find button clicked!');
-                    findDevice();
+                    if (!findBtn.disabled) {
+                        console.log('🔘 Find button clicked!');
+                        findDevice();
+                    }
                 });
             } else {
                 console.error('❌ Find button NOT found!');
@@ -838,4 +915,3 @@
     </script>
 </body>
 </html>
-
