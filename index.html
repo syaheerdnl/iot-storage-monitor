@@ -291,6 +291,203 @@
             </div>
         </div>
 
+<!-- Add this after the 6 sensor cards, before charts section -->
+<div class="charts-section" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;">
+        <i data-lucide="settings"></i> Time-Based Alert Configuration
+    </h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Time Settings -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">⏰ After-Hours Period</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Start Hour (PM)</label>
+                    <input type="number" id="afterHoursStart" min="0" max="23" value="18" 
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">End Hour (AM)</label>
+                    <input type="number" id="afterHoursEnd" min="0" max="23" value="8"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Threshold Settings -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🎯 Detection Thresholds</h3>
+            <div style="display: grid; gap: 8px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Movement (cm)</label>
+                    <input type="number" id="movementThreshold" value="20"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Light (lux)</label>
+                    <input type="number" id="lightThreshold" value="100"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Settings -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">🌡️ Temperature Limits</h3>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">High (°C)</label>
+                    <input type="number" id="tempHigh" value="35"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Low (°C)</label>
+                    <input type="number" id="tempLow" value="15"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Humidity Settings -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">💧 Humidity Limits</h3>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">High (%)</label>
+                    <input type="number" id="humidityHigh" value="85"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Low (%)</label>
+                    <input type="number" id="humidityLow" value="20"
+                           style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Enable/Disable + Save Button -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">⚙️ Controls</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="monitoringEnabled" checked
+                           style="width: 20px; height: 20px; cursor: pointer;">
+                    <span style="font-size: 0.9rem;">Enable Time-Based Monitoring</span>
+                </label>
+            </div>
+            <button onclick="saveConfig()" style="
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 1rem;
+            ">💾 SAVE CONFIGURATION</button>
+            <div id="saveStatus" style="margin-top: 10px; text-align: center; font-size: 0.85rem;"></div>
+        </div>
+
+        <!-- Load Current Config -->
+        <div class="card">
+            <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--primary);">📥 Current Config</h3>
+            <button onclick="loadCurrentConfig()" style="
+                width: 100%;
+                padding: 12px;
+                background: rgba(99, 102, 241, 0.2);
+                color: var(--primary);
+                border: 1px solid var(--primary);
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+            ">🔄 LOAD FROM DEVICE</button>
+            <div id="currentConfig" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const WRITE_API_KEY = 'U4D0GGPDJ9PMZRO4'; // Your write API key
+
+async function saveConfig() {
+    const afterStart = document.getElementById('afterHoursStart').value;
+    const afterEnd = document.getElementById('afterHoursEnd').value;
+    const moveThresh = document.getElementById('movementThreshold').value;
+    const lightThresh = document.getElementById('lightThreshold').value;
+    const tempH = document.getElementById('tempHigh').value;
+    const tempL = document.getElementById('tempLow').value;
+    const humH = document.getElementById('humidityHigh').value;
+    const humL = document.getElementById('humidityLow').value;
+    const enabled = document.getElementById('monitoringEnabled').checked ? 1 : 0;
+    
+    // Format: "START,END,MOVE,LIGHT,THIGH,TLOW,HHIGH,HLOW,ENABLED"
+    const configString = `${afterStart},${afterEnd},${moveThresh},${lightThresh},${tempH},${tempL},${humH},${humL},${enabled}`;
+    
+    const url = `https://api.thingspeak.com/update?api_key=${WRITE_API_KEY}&field7=${encodeURIComponent(configString)}`;
+    
+    document.getElementById('saveStatus').textContent = '⏳ Saving...';
+    document.getElementById('saveStatus').style.color = '#f59e0b';
+    
+    try {
+        const response = await fetch(url);
+        const result = await response.text();
+        
+        if (result !== '0') {
+            document.getElementById('saveStatus').textContent = '✅ Saved! Device will update in ~3 min';
+            document.getElementById('saveStatus').style.color = '#10b981';
+        } else {
+            document.getElementById('saveStatus').textContent = '❌ Save failed (rate limit?)';
+            document.getElementById('saveStatus').style.color = '#ef4444';
+        }
+    } catch (error) {
+        document.getElementById('saveStatus').textContent = '❌ Network error';
+        document.getElementById('saveStatus').style.color = '#ef4444';
+    }
+}
+
+async function loadCurrentConfig() {
+    const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/fields/7/last.json?api_key=${READ_API_KEY}`;
+    
+    document.getElementById('currentConfig').textContent = '⏳ Loading...';
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.field7) {
+            const values = data.field7.split(',');
+            
+            document.getElementById('afterHoursStart').value = values[0];
+            document.getElementById('afterHoursEnd').value = values[1];
+            document.getElementById('movementThreshold').value = values[2];
+            document.getElementById('lightThreshold').value = values[3];
+            document.getElementById('tempHigh').value = values[4];
+            document.getElementById('tempLow').value = values[5];
+            document.getElementById('humidityHigh').value = values[6];
+            document.getElementById('humidityLow').value = values[7];
+            document.getElementById('monitoringEnabled').checked = values[8] === '1';
+            
+            document.getElementById('currentConfig').textContent = '✅ Loaded from device!';
+            document.getElementById('currentConfig').style.color = '#10b981';
+        } else {
+            document.getElementById('currentConfig').textContent = '⚠️ No config found on device';
+            document.getElementById('currentConfig').style.color = '#f59e0b';
+        }
+    } catch (error) {
+        document.getElementById('currentConfig').textContent = '❌ Load failed';
+        document.getElementById('currentConfig').style.color = '#ef4444';
+    }
+}
+
+// Auto-load config when page loads
+window.addEventListener('load', () => {
+    setTimeout(loadCurrentConfig, 2000);
+});
+</script>
+
         <div class="charts-section">
             <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 10px;">
                 <i data-lucide="bar-chart-3"></i> Historical Analytics
